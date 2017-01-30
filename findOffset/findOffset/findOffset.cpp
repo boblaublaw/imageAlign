@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <vector>
 
 const int MAX_TOKENS_PER_LINE = 2000;
 const int MAX_CHARS_PER_LINE = MAX_TOKENS_PER_LINE * 4;
@@ -18,6 +19,7 @@ public:
 	char *filename;
 	std::string pgmVersion;
 	int X, Y;
+	std::vector<std::vector<int>> imgData;
 
 	pgmImage() {};
 	pgmImage(char *f) : filename(f)
@@ -88,6 +90,10 @@ public:
 			throw std::string("No idea how to parse a PGM maxValue of ") + std::string(buf);
 		}
 
+		// preallocate memory for the ints
+		imgData.resize(Y, std::vector<int>(X, 0));
+
+		int lineNum = 0;
 		// read each line of the file
 		while (!fin.eof())
 		{
@@ -107,7 +113,11 @@ public:
 				for (n = 1; n < MAX_TOKENS_PER_LINE; n++)
 				{
 					token[n] = strtok(0, DELIMITER); // subsequent tokens
-					if (!token[n]) break; // no more tokens
+					//imgData[lineNum][n] = std::stoi(token[n]);
+					if (!token[n])
+					{
+						break; // no more tokens
+					}
 				}
 			}
 
@@ -115,11 +125,6 @@ public:
 			for (int i = 0; i < n; i++) // n = #of tokens
 				std::cout << "Token[" << i << "] = " << token[i] << std::endl;
 			std::cout << std::endl;
-		}
-
-
-		if (false) {
-			throw "poop";
 		}
 	}
 	// pgmImage operator + (const pgmImage&);
@@ -136,7 +141,7 @@ void usage(char* progname)
 
 int main(int argc, char* argv[])
 {
-	pgmImage A, B;
+	pgmImage *A, *B;
 
 	/*
 	check arguments
@@ -147,10 +152,8 @@ int main(int argc, char* argv[])
 	
 	try
 	{
-		A = pgmImage(argv[1]);
-		B = pgmImage(argv[2]);
-
-
+		A = new pgmImage(argv[1]);
+		B = new pgmImage(argv[2]);
 	}
 	catch (char *e)
 	{
@@ -161,6 +164,10 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "An exception occurred: " << e.c_str() << std::endl;
 		usage(argv[0]);
+	}
+	catch (...)
+	{
+		std::cout << "An unknown exception occurred!" << std::endl;
 	}
 	exit(EXIT_SUCCESS);
 }
