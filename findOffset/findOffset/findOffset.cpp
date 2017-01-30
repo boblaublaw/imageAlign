@@ -50,7 +50,8 @@ public:
 			int n = 0; // a for-loop index
 
 			// array to store memory addresses of the tokens in buf
-			const char* token[MAX_TOKENS_PER_LINE] = {}; // initialize to 0
+			const char* token[MAX_TOKENS_PER_LINE] = {};
+
 			// parse the line
 			token[0] = strtok(buf, DELIMITER); // first token
 			if (token[0]) // zero if line is blank
@@ -58,7 +59,10 @@ public:
 				for (n = 1; n < MAX_TOKENS_PER_LINE; n++)
 				{
 					token[n] = strtok(0, DELIMITER); // subsequent tokens
-					if (!token[n]) break; // no more tokens
+					if (!token[n])
+					{
+						break; // no more tokens
+					}
 				}
 			}
 			if (n != 2)
@@ -113,17 +117,26 @@ public:
 				for (n = 1; n < MAX_TOKENS_PER_LINE; n++)
 				{
 					token[n] = strtok(0, DELIMITER); // subsequent tokens
-					//imgData[lineNum][n] = std::stoi(token[n]);
+
 					if (!token[n])
 					{
-						break; // no more tokens
+						imgData[lineNum][0] = std::stoi(token[0]);
+						lineNum++;
+						break; // no more tokens on this line
 					}
+					imgData[lineNum][n] = std::stoi(token[n]);
+					//std::cout << imgData[lineNum][n] << " ";
 				}
 			}
-
-			// process (print) the tokens
-			for (int i = 0; i < n; i++) // n = #of tokens
-				std::cout << "Token[" << i << "] = " << token[i] << std::endl;
+			//std::cout << std::endl;
+		}
+		// process (print) the tokens
+		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
+		{
+			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
+			{
+				std::cout << imgData[i][j] << ' ';
+			}
 			std::cout << std::endl;
 		}
 	}
