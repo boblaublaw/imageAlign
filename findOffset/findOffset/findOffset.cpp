@@ -125,11 +125,11 @@ public:
 						break; // no more tokens on this line
 					}
 					imgData[lineNum][n] = std::stoi(token[n]);
-					//std::cout << imgData[lineNum][n] << " ";
 				}
 			}
-			//std::cout << std::endl;
 		}
+	}
+	void print(void) {
 		// process (print) the tokens
 		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
 		{
@@ -154,19 +154,18 @@ void usage(char* progname)
 
 int main(int argc, char* argv[])
 {
-	pgmImage *A, *B;
-
-	/*
-	check arguments
-	*/
 	if (argc !=3) {
 		usage(argv[0]);
 	}
 	
+	pgmImage *A, *B;
+
 	try
 	{
 		A = new pgmImage(argv[1]);
 		B = new pgmImage(argv[2]);
+		//A->print();
+		//B->print();
 	}
 	catch (char *e)
 	{
