@@ -22,13 +22,17 @@ public:
 	std::vector<std::vector<int>> imgData;
 
 	pgmImage() {};
-	pgmImage(const pgmImage &obj)
-	{
-		X = obj.X;
-		Y = obj.Y;
-		filename = NULL;
-		pgmVersion = obj.pgmVersion;
-		imgData = obj.imgData;
+	~pgmImage(void) {}
+	void print(void) {
+		// process (print) the tokens
+		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
+		{
+			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
+			{
+				std::cout << i << "," << j << ":" << imgData[i][j] << ' ';
+			}
+			std::cout << std::endl;
+		}
 	}
 	pgmImage(char *f) : filename(f)
 	{
@@ -140,18 +144,42 @@ public:
 		}
 		fin.close();
 	}
-	void print(void) {
-		// process (print) the tokens
+	pgmImage(const pgmImage &obj)
+	{
+		X = obj.X;
+		Y = obj.Y;
+		filename = NULL;
+		pgmVersion = obj.pgmVersion;
+		imgData = obj.imgData;
+	}
+	pgmImage operator=(const pgmImage &obj)
+	{
+		X = obj.X;
+		Y = obj.Y;
+		filename = NULL;
+		pgmVersion = obj.pgmVersion;
+		imgData = obj.imgData;
+	}
+	pgmImage operator-(const pgmImage &ref) {
+		if ((ref.X != X)||(ref.Y != Y)) {
+			throw "mismatched matrix sizes!";
+		}
+		pgmImage result;
+		result.X = X;
+		result.Y = Y;
+		result.pgmVersion = pgmVersion;
+		result.imgData.resize(Y, std::vector<int>(X, 0));
+
 		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
 		{
 			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
 			{
-				std::cout << i << "," << j << ":" << imgData[i][j] << ' ';
+				result.imgData[i][j] = imgData[i][j] - ref.imgData[i][j];
+				//std::cout << i << "," << j << ":" << imgData[i][j] << ' ';
 			}
-			std::cout << std::endl;
 		}
+		return result;
 	}
-	~pgmImage(void) {}
 	// pgmImage operator + (const pgmImage&);
 };
 
@@ -170,7 +198,7 @@ int main(int argc, char* argv[])
 		usage(argv[0]);
 	}
 	
-	pgmImage *A, *B;
+	pgmImage *A, *B, *C;
 
 	try
 	{
@@ -191,6 +219,9 @@ int main(int argc, char* argv[])
 		A->print();
 		std::cout << std::endl;
 		B->print();
+		std::cout << std::endl;
+		C = B;
+		C->print();
 	}
 
 	catch (char *e)
@@ -207,8 +238,6 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "An unknown exception occurred!" << std::endl;
 	}
-
-
 	exit(EXIT_SUCCESS);
 }
 
