@@ -24,7 +24,7 @@ public:
 	pgmImage() {};
 	~pgmImage(void) {}
 	void print(void) {
-		// process (print) the tokens
+		std::cout << "name: " << filename << std::endl << "version: " << pgmVersion << std::endl;
 		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
 		{
 			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
@@ -148,19 +148,19 @@ public:
 	{
 		X = obj.X;
 		Y = obj.Y;
-		filename = NULL;
+		filename = "copy";
 		pgmVersion = obj.pgmVersion;
 		imgData = obj.imgData;
 	}
-	pgmImage operator=(const pgmImage &obj)
+	void operator = (const pgmImage &obj)
 	{
 		X = obj.X;
 		Y = obj.Y;
-		filename = NULL;
+		filename = "assignment copy";
 		pgmVersion = obj.pgmVersion;
 		imgData = obj.imgData;
 	}
-	pgmImage operator-(const pgmImage &ref) {
+	pgmImage operator - (const pgmImage &ref) {
 		if ((ref.X != X)||(ref.Y != Y)) {
 			throw "mismatched matrix sizes!";
 		}
@@ -175,7 +175,6 @@ public:
 			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
 			{
 				result.imgData[i][j] = imgData[i][j] - ref.imgData[i][j];
-				//std::cout << i << "," << j << ":" << imgData[i][j] << ' ';
 			}
 		}
 		return result;
@@ -198,7 +197,7 @@ int main(int argc, char* argv[])
 		usage(argv[0]);
 	}
 	
-	pgmImage *A, *B, *C;
+	pgmImage *A, *B, C, *D;
 
 	try
 	{
@@ -215,13 +214,23 @@ int main(int argc, char* argv[])
 	{
 		A = new pgmImage(argv[1]);
 		B = new pgmImage(argv[2]);
-		std::cout << std::endl;
+		std::cout << "A" << std::endl;
 		A->print();
-		std::cout << std::endl;
+		std::cout << "B" << std::endl;
 		B->print();
 		std::cout << std::endl;
-		C = B;
-		C->print();
+		C = *A;
+		A->imgData.resize(2, std::vector<int>(2, 0));
+		std::cout << "resized A" << std::endl;
+		A->print();
+		std::cout << "C" << std::endl;
+		C.print();
+		D = new pgmImage(*B);
+		B->imgData.resize(2, std::vector<int>(2, 0));
+		std::cout << "resized B" << std::endl;
+		B->print();
+		std::cout << "D" << std::endl;
+		D->print();
 	}
 
 	catch (char *e)
