@@ -23,7 +23,7 @@ public:
 	pgmImage() {};
 	~pgmImage(void)
 	{
-		std::cerr << "dealloc " << name << std::endl;
+		//std::cerr << "dealloc " << filename << std::endl;
 		imgData.resize(0, std::vector<int>(0));
 	}
 	int X(void) const
@@ -249,29 +249,25 @@ float measureDiff(pgmImage &a, pgmImage &b, int x, int y)
 
 	// trim the images according to the offsets.
 	// if x or y is 0 we neednt trim in that dimension.
-	while (x > 0)
+	while (x-- > 0)
 	{
 		c.trimleft();
 		d.trimright();
-		x--;
 	}
-	while (x < 0)
+	while (x++ < 0)
 	{
 		c.trimright();
 		d.trimleft();
-		x++;
 	}
-	while (y > 0)
+	while (y-- > 0)
 	{
 		c.trimtop();
 		d.trimbottom();
-		y--;
 	}
-	while (y < 0)
+	while (y++ < 0)
 	{
 		c.trimbottom();
 		d.trimtop();
-		y++;
 	}
 	pgmImage e = c - d;
 	return e.error();
