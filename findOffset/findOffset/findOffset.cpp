@@ -96,7 +96,7 @@ public:
 			}
 			try
 			{
-				X = std::stoi(std::string(token[0]));
+				Y = std::stoi(std::string(token[0]));
 			}
 			catch (...)
 			{
@@ -104,7 +104,7 @@ public:
 			}
 			try
 			{
-				Y = std::stoi(std::string(token[1]));
+				X = std::stoi(std::string(token[1]));
 			}
 			catch (...)
 			{
@@ -120,7 +120,7 @@ public:
 		}
 
 		// preallocate memory for the ints
-		imgData.resize(Y, std::vector<int>(X, 0));
+		imgData.resize(X, std::vector<int>(Y, 0));
 
 		int lineNum = 0;
 		// read each line of the file
@@ -153,7 +153,17 @@ public:
 					}
 					imgData[lineNum][n] = std::stoi(token[n]);
 				}
+				if (n != Y)
+				{
+					std::cerr << "wrong number of tokens on this line! " << n << " != " << Y << std::endl;
+					throw "poop";
+				}
 			}
+		}
+		if (lineNum != X)
+		{
+			std::cerr << "wrong number of lines in this file! " << lineNum << " != " << X << std::endl;
+			throw "pee";
 		}
 		fin.close();
 	}
