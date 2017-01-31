@@ -15,16 +15,27 @@ const char* const DELIMITER = " \t";
 
 class pgmImage
 {
-public:
+private:
 	char *filename;
 	std::string pgmVersion;
-	int X, Y;
 	std::vector<std::vector<int>> imgData;
-
+public:
 	pgmImage() {};
-	~pgmImage(void) {}
+	~pgmImage(void)
+	{
+		std::cerr << "dealloc " << name << std::endl;
+		imgData.resize(0, std::vector<int>(0));
+	}
+	int X(void) const
+	{
+		return (imgData.size());
+	}
+	int Y(void) const
+	{
+		return (imgData[0].size());
+	}
 	void print(void) {
-		std::cout << "name: " << filename << std::endl << "version: " << pgmVersion << std::endl;
+		std::cout << "name: " << filename << std::endl << "version: " << pgmVersion << " with size " << X() << "," << Y() << std::endl;
 		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
 		{
 			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
@@ -36,6 +47,7 @@ public:
 	}
 	pgmImage(char *f) : filename(f)
 	{
+		int X, Y;
 		std::ifstream fin;
 		char buf[MAX_CHARS_PER_LINE];
 
@@ -146,30 +158,24 @@ public:
 	}
 	pgmImage(const pgmImage &obj)
 	{
-		X = obj.X;
-		Y = obj.Y;
 		filename = "copy";
 		pgmVersion = obj.pgmVersion;
 		imgData = obj.imgData;
 	}
 	void operator = (const pgmImage &obj)
 	{
-		X = obj.X;
-		Y = obj.Y;
 		filename = "assignment copy";
 		pgmVersion = obj.pgmVersion;
 		imgData = obj.imgData;
 	}
 	pgmImage operator - (const pgmImage &ref) {
-		if ((ref.X != X)||(ref.Y != Y)) {
+		if ((ref.X() != X())||(ref.Y() != Y())) {
 			throw "mismatched matrix sizes!";
 		}
 		pgmImage result;
-		result.X = X;
-		result.Y = Y;
 		result.pgmVersion = pgmVersion;
-		result.imgData.resize(Y, std::vector<int>(X, 0));
-
+		result.filename = "subtraction result";
+		result.imgData.resize(X(), std::vector<int>(Y(), 0));
 		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
 		{
 			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
@@ -181,7 +187,7 @@ public:
 	}
 	int area(void) const
 	{
-		return X * Y;
+		return X() * Y();
 	}
 	int sum (void) const
 	{
@@ -199,7 +205,24 @@ public:
 	{
 		return ((sum() * 1.0f) / area());
 	}
-	// pgmImage operator + (const pgmImage&);
+	/*
+	these functions trim one row or col at a time from the sides
+	*/
+	void trimtop(void)
+	{
+		imgData.erase(imgData.begin());
+	}
+	void trimbottom(void)
+	{
+		imgData.erase(imgData.end() - 1);
+	}
+	void trimleft(void)
+	{
+
+	}
+	void trimright(void)
+	{
+	}
 };
 
 void usage(char* progname)
@@ -212,13 +235,67 @@ void usage(char* progname)
 }
 
 /*
+	this function shifts two images relative to eachother, crops off
+	anything that isn't overlapping, and measures the resulting error
+	between the two.
+
+	B moves relative to A.
+*/
+float measureDiff(pgmImage &a, pgmImage &b, int x, int y)
+{
+	// make a deep copy before we modify anything
+	pgmImage c = a;
+	pgmImage d = b;
+
+	// trim the images according to the offsets.
+	// if x or y is 0 we neednt trim in that dimension.
+	while (x > 0)
+	{
+		c.trimleft();
+		d.trimright();
+		x--;
+	}
+	while (x < 0)
+	{
+		c.trimright();
+		d.trimleft();
+		x++;
+	}
+	while (y > 0)
+	{
+		c.trimtop();
+		d.trimbottom();
+		y--;
+	}
+	while (y < 0)
+	{
+		c.trimbottom();
+		d.trimtop();
+		y++;
+	}
+	pgmImage e = c - d;
+	return e.error();
+}
+
+/*
 	this is the meat and potatoes. take two images and brute for a range
 	of x,y offsets to find the offset with the least error over area.
 */
 int findOffset(pgmImage &a, pgmImage &b, int x, int y)
 {
+	std::vector<std::vector<float>> err;
+	err.resize((x*2)+1, std::vector<float>((y*2)+1, 0.0));
 
-
+	for (int i = -x; i <= x; i++)
+	{
+		for (int j = -y; j <= y; j++)
+		{
+			int k = i + x;
+			int l = j + y;
+			err[k][l] = measureDiff(a, b, i, j);
+			std::cout << i << "," << j << " = " << err[k][l] << std::endl;
+		}
+	}
 	return EXIT_SUCCESS;
 }
 
