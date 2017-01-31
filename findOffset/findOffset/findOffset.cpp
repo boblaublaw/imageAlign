@@ -219,6 +219,7 @@ int main(int argc, char* argv[])
 		std::cout << "B" << std::endl;
 		B->print();
 		std::cout << std::endl;
+#ifdef UNDEFINED
 		C = *A;
 		A->imgData.resize(2, std::vector<int>(2, 0));
 		std::cout << "resized A" << std::endl;
@@ -231,6 +232,9 @@ int main(int argc, char* argv[])
 		B->print();
 		std::cout << "D" << std::endl;
 		D->print();
+#endif
+		C = *A - *B;
+		C.print();
 	}
 
 	catch (char *e)
