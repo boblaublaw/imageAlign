@@ -2,6 +2,7 @@
 //
 #include "stdafx.h"
 #include "stdlib.h"
+#include <math.h>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -51,7 +52,7 @@ public:
 		std::ifstream fin;
 		char buf[MAX_CHARS_PER_LINE];
 
-		std::cout << "reading a pgm file: " << filename << std::endl;
+		//std::cout << "reading a pgm file: " << filename << std::endl;
 		fin.open(filename);
 		if (!fin.good())
 		{
@@ -289,6 +290,8 @@ int findOffset(pgmImage &a, pgmImage &b, int x, int y)
 	std::vector<std::vector<float>> err;
 	err.resize((x*2)+1, std::vector<float>((y*2)+1, 0.0));
 
+	int rx, ry;
+	float re = FLT_MAX;
 	for (int i = -x; i <= x; i++)
 	{
 		for (int j = -y; j <= y; j++)
@@ -296,14 +299,21 @@ int findOffset(pgmImage &a, pgmImage &b, int x, int y)
 			int k = i + x;
 			int l = j + y;
 			err[k][l] = measureDiff(a, b, i, j);
-			std::cout << i << "," << j << " = " << err[k][l] << std::endl;
+			if (fabs(err[k][l]) < re)
+			{
+				re = fabs(err[k][l]);
+				rx = i;
+				ry = j;
+			}
+			//std::cout << i << "," << j << " = " << err[k][l] << std::endl;
 		}
 	}
+	std::cout << rx << " " << ry << " " << err[rx + x][ry + y] << std::endl;
 	return EXIT_SUCCESS;
 }
 
 /*
-	main just reads and validates user input:
+	main just reads and validates user input, then calls findOffset()
 */
 int main(int argc, char* argv[])
 {
@@ -319,7 +329,7 @@ int main(int argc, char* argv[])
 	{
 		xRange = std::stoi(argv[3]);
 		yRange = std::stoi(argv[4]);
-		std::cout << "range of " << xRange << ',' << yRange << std::endl;
+		//std::cout << "range of " << xRange << ',' << yRange << std::endl;
 	}
 	catch (...)
 	{
@@ -384,4 +394,3 @@ A->print();
 std::cout << "B" << std::endl;
 B->print();
 #endif
-
