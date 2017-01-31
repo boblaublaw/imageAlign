@@ -22,6 +22,14 @@ public:
 	std::vector<std::vector<int>> imgData;
 
 	pgmImage() {};
+	pgmImage(const pgmImage &obj)
+	{
+		X = obj.X;
+		Y = obj.Y;
+		filename = NULL;
+		pgmVersion = obj.pgmVersion;
+		imgData = obj.imgData;
+	}
 	pgmImage(char *f) : filename(f)
 	{
 		std::ifstream fin;
@@ -112,15 +120,17 @@ public:
 
 			// parse the line
 			token[0] = strtok(buf, DELIMITER); // first token
+
 			if (token[0]) // zero if line is blank
 			{
+				imgData[lineNum][0] = std::stoi(token[0]);
+
 				for (n = 1; n < MAX_TOKENS_PER_LINE; n++)
 				{
 					token[n] = strtok(0, DELIMITER); // subsequent tokens
 
 					if (!token[n])
 					{
-						imgData[lineNum][0] = std::stoi(token[0]);
 						lineNum++;
 						break; // no more tokens on this line
 					}
@@ -128,6 +138,7 @@ public:
 				}
 			}
 		}
+		fin.close();
 	}
 	void print(void) {
 		// process (print) the tokens
@@ -135,11 +146,12 @@ public:
 		{
 			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
 			{
-				std::cout << imgData[i][j] << ' ';
+				std::cout << i << "," << j << ":" << imgData[i][j] << ' ';
 			}
 			std::cout << std::endl;
 		}
 	}
+	~pgmImage(void) {}
 	// pgmImage operator + (const pgmImage&);
 };
 
@@ -154,7 +166,7 @@ void usage(char* progname)
 
 int main(int argc, char* argv[])
 {
-	if (argc !=3) {
+	if (argc !=5) {
 		usage(argv[0]);
 	}
 	
@@ -162,11 +174,25 @@ int main(int argc, char* argv[])
 
 	try
 	{
+		int xRange = std::stoi(argv[3]);
+		int yRange = std::stoi(argv[4]);
+		std::cout << "range of " << xRange << ',' << yRange << std::endl;
+	}
+	catch (...)
+	{
+		std::cout << "Problem parsing range values!" << std::endl;
+		usage(argv[0]);
+	}
+	try
+	{
 		A = new pgmImage(argv[1]);
 		B = new pgmImage(argv[2]);
-		//A->print();
-		//B->print();
+		std::cout << std::endl;
+		A->print();
+		std::cout << std::endl;
+		B->print();
 	}
+
 	catch (char *e)
 	{
 		std::cout << "An exception occurred: " << e << std::endl;
@@ -181,6 +207,8 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "An unknown exception occurred!" << std::endl;
 	}
+
+
 	exit(EXIT_SUCCESS);
 }
 
