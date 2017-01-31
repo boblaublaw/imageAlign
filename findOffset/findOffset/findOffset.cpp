@@ -17,14 +17,14 @@ const char* const DELIMITER = " \t";
 class pgmImage
 {
 private:
-	char *filename;
+	char *desc;
 	std::string pgmVersion;
 	std::vector<std::vector<int>> imgData;
 public:
 	pgmImage() {};
 	~pgmImage(void)
 	{
-		//std::cerr << "dealloc " << filename << std::endl;
+		//std::cerr << "dealloc " << desc << std::endl;
 		imgData.resize(0, std::vector<int>(0));
 	}
 	int X(void) const
@@ -36,7 +36,7 @@ public:
 		return (imgData[0].size());
 	}
 	void print(void) {
-		std::cout << "name: " << filename << std::endl << "version: " << pgmVersion << " with size " << X() << "," << Y() << std::endl;
+		std::cout << "name: " << desc << std::endl << "version: " << pgmVersion << " with size " << X() << "," << Y() << std::endl;
 		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
 		{
 			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
@@ -46,17 +46,17 @@ public:
 			std::cout << std::endl;
 		}
 	}
-	pgmImage(char *f) : filename(f)
+	pgmImage(char *f) : desc(f)
 	{
 		int X, Y;
 		std::ifstream fin;
 		char buf[MAX_CHARS_PER_LINE];
 
-		//std::cout << "reading a pgm file: " << filename << std::endl;
-		fin.open(filename);
+		//std::cout << "reading a pgm file: " << desc << std::endl;
+		fin.open(desc);
 		if (!fin.good())
 		{
-			throw std::string("Couldn't open the input file: ") + std::string(filename);
+			throw std::string("Couldn't open the input file: ") + std::string(desc);
 		}
 
 		// first check the file header version
@@ -169,13 +169,13 @@ public:
 	}
 	pgmImage(const pgmImage &obj)
 	{
-		filename = "copy";
+		desc = "copy";
 		pgmVersion = obj.pgmVersion;
 		imgData = obj.imgData;
 	}
 	void operator = (const pgmImage &obj)
 	{
-		filename = "assignment copy";
+		desc = "assignment copy";
 		pgmVersion = obj.pgmVersion;
 		imgData = obj.imgData;
 	}
@@ -185,7 +185,7 @@ public:
 		}
 		pgmImage result;
 		result.pgmVersion = pgmVersion;
-		result.filename = "subtraction result";
+		result.desc = "subtraction result";
 		result.imgData.resize(X(), std::vector<int>(Y(), 0));
 		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
 		{
