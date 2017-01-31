@@ -179,6 +179,26 @@ public:
 		}
 		return result;
 	}
+	int area(void) const
+	{
+		return X * Y;
+	}
+	int sum (void) const
+	{
+		int result = 0;
+		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
+		{
+			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
+			{
+				result += imgData[i][j];
+			}
+		}
+		return result;
+	}
+	float error(void) const
+	{
+		return ((sum() * 1.0f) / area());
+	}
 	// pgmImage operator + (const pgmImage&);
 };
 
@@ -191,18 +211,34 @@ void usage(char* progname)
 	exit(EXIT_FAILURE);
 }
 
+/*
+	this is the meat and potatoes. take two images and brute for a range
+	of x,y offsets to find the offset with the least error over area.
+*/
+int findOffset(pgmImage &a, pgmImage &b, int x, int y)
+{
+
+
+	return EXIT_SUCCESS;
+}
+
+/*
+	main just reads and validates user input:
+*/
 int main(int argc, char* argv[])
 {
+	int xRange, yRange, rv = EXIT_FAILURE;
+
 	if (argc !=5) {
 		usage(argv[0]);
 	}
 	
-	pgmImage *A, *B, C, *D;
+	pgmImage *A, *B;
 
 	try
 	{
-		int xRange = std::stoi(argv[3]);
-		int yRange = std::stoi(argv[4]);
+		xRange = std::stoi(argv[3]);
+		yRange = std::stoi(argv[4]);
 		std::cout << "range of " << xRange << ',' << yRange << std::endl;
 	}
 	catch (...)
@@ -214,29 +250,9 @@ int main(int argc, char* argv[])
 	{
 		A = new pgmImage(argv[1]);
 		B = new pgmImage(argv[2]);
-		std::cout << "A" << std::endl;
-		A->print();
-		std::cout << "B" << std::endl;
-		B->print();
-		std::cout << std::endl;
-#ifdef UNDEFINED
-		C = *A;
-		A->imgData.resize(2, std::vector<int>(2, 0));
-		std::cout << "resized A" << std::endl;
-		A->print();
-		std::cout << "C" << std::endl;
-		C.print();
-		D = new pgmImage(*B);
-		B->imgData.resize(2, std::vector<int>(2, 0));
-		std::cout << "resized B" << std::endl;
-		B->print();
-		std::cout << "D" << std::endl;
-		D->print();
-#endif
-		C = *A - *B;
-		C.print();
-	}
 
+		rv = findOffset(*A, *B, xRange, yRange);
+	}
 	catch (char *e)
 	{
 		std::cout << "An exception occurred: " << e << std::endl;
@@ -250,7 +266,42 @@ int main(int argc, char* argv[])
 	catch (...)
 	{
 		std::cout << "An unknown exception occurred!" << std::endl;
+		usage(argv[0]);
 	}
-	exit(EXIT_SUCCESS);
+	exit(rv);
 }
+
+#ifdef UNDEFINED
+D = new pgmImage(*B);
+C = *A;
+std::cout << "A" << std::endl;
+A->print();
+std::cout << "B" << std::endl;
+B->print();
+std::cout << std::endl;
+
+std::cout << "B - A" << std::endl;
+C = *B - *A;
+C.print();
+std::cout << std::endl << "error of B-A" << std::endl;
+std::cout << C.error() << std::endl;
+
+A->imgData.resize(2, std::vector<int>(2, 0));
+std::cout << "resized A" << std::endl;
+A->print();
+std::cout << "C" << std::endl;
+C.print();
+B->imgData.resize(2, std::vector<int>(2, 0));
+std::cout << "resized B" << std::endl;
+B->print();
+std::cout << "D" << std::endl;
+D->print();
+std::cout << "A - B" << std::endl;
+C = *A - *B;
+C.print();
+std::cout << "A" << std::endl;
+A->print();
+std::cout << "B" << std::endl;
+B->print();
+#endif
 
