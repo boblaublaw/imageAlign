@@ -218,10 +218,17 @@ public:
 	}
 	void trimleft(void)
 	{
-
+		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
+		{
+			imgData[i].erase(imgData[i].begin());
+		}
 	}
 	void trimright(void)
 	{
+		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
+		{
+			imgData[i].erase(imgData[i].end() - 1);
+		}
 	}
 };
 
