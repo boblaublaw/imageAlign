@@ -36,12 +36,13 @@ public:
 		return (imgData[0].size());
 	}
 	void print(void) {
-		std::cout << "name: " << desc << std::endl << "version: " << pgmVersion << " with size " << X() << "," << Y() << std::endl;
+		//std::cout << "name: " << desc << std::endl << "version: " << pgmVersion << " with size " << X() << "," << Y() << std::endl;
 		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
 		{
 			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
 			{
-				std::cout << i << "," << j << ":" << imgData[i][j] << ' ';
+				//std::cout << i << "," << j << ":" << imgData[i][j] << ' ';
+				std::cout << imgData[i][j] << ' ';
 			}
 			std::cout << std::endl;
 		}
@@ -179,7 +180,8 @@ public:
 		pgmVersion = obj.pgmVersion;
 		imgData = obj.imgData;
 	}
-	pgmImage operator - (const pgmImage &ref) {
+	pgmImage operator - (const pgmImage &ref)
+	{
 		if ((ref.X() != X())||(ref.Y() != Y())) {
 			throw "mismatched matrix sizes!";
 		}
@@ -200,21 +202,21 @@ public:
 	{
 		return X() * Y();
 	}
-	int sum (void) const
+	int totalDifference(void) const
 	{
 		int result = 0;
 		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
 		{
 			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
 			{
-				result += imgData[i][j];
+				result += fabs(imgData[i][j]);
 			}
 		}
 		return result;
 	}
 	float error(void) const
 	{
-		return ((sum() * 1.0f) / area());
+		return ((totalDifference() * 1.0f) / area());
 	}
 	/*
 	these functions trim one row or col at a time from the sides
@@ -241,53 +243,96 @@ public:
 			imgData[i].erase(imgData[i].end() - 1);
 		}
 	}
+
+	void printImage(const char *filename)
+	{
+		std::ofstream fout;
+		fout.open(filename);
+		if (!fout.good())
+		{
+			throw std::string("Couldn't open the output file: ") + std::string(filename);
+		}
+		fout << "P2" << std::endl;
+		fout << Y() << " " << X() << std::endl;
+		fout << "255" << std::endl;
+		for (std::vector<std::vector<int>>::size_type i = 0; i < imgData.size(); i++)
+		{
+			for (std::vector<int>::size_type j = 0; j < imgData[i].size(); j++)
+			{
+				fout << imgData[i][j] << " ";
+			}
+			fout << std::endl;
+		}
+	}
 };
 
-void usage(char* progname)
+/*
+this function shifts two images relative to eachother, crops off
+anything that isn't overlapping, and measures the resulting error
+between the two.
+
+B moves relative to A.
+*/
+void prepImages(pgmImage &a, pgmImage &b, int x, int y)
 {
-	std::cout << std::endl;
-	std::cout << progname << " usage:" << std::endl;
-	std::cout << std::endl;
-	std::cout << "     " << progname << " frameA.pgm frameB.pgm" << std::endl;
-	exit(EXIT_FAILURE);
+	// trim the images according to the offsets.
+	// if x or y is 0 we neednt trim in that dimension.
+	while (x > 0)
+	{
+		//std::cout << "posX" << std::endl;
+		a.trimleft();
+		b.trimright();
+		x--;
+	}
+	while (x < 0)
+	{
+		//std::cout << "negX" << std::endl;
+		a.trimright();
+		b.trimleft();
+		x++;
+	}
+	while (y > 0)
+	{
+		//std::cout << "posY" << std::endl;
+		a.trimtop();
+		b.trimbottom();
+		y--;
+	}
+	while (y < 0)
+	{
+		//std::cout << "negY" << std::endl;
+		a.trimbottom();
+		b.trimtop();
+		y++;
+	}
+#ifdef UNDEFINED
+	std::cout << std::endl << x << "," << y << std::endl;
+	std::cout << "left:" << std::endl;
+	a.print();
+	std::cout << "right:" << std::endl;
+	b.print();
+#endif
 }
 
 /*
-	this function shifts two images relative to eachother, crops off
-	anything that isn't overlapping, and measures the resulting error
-	between the two.
-
-	B moves relative to A.
+	this function measures the error between two images
 */
-float measureDiff(pgmImage &a, pgmImage &b, int x, int y)
+float measureDiff(pgmImage &a, pgmImage &b, int i, int j)
 {
 	// make a deep copy before we modify anything
 	pgmImage c = a;
 	pgmImage d = b;
 
-	// trim the images according to the offsets.
-	// if x or y is 0 we neednt trim in that dimension.
-	while (x-- > 0)
-	{
-		c.trimleft();
-		d.trimright();
-	}
-	while (x++ < 0)
-	{
-		c.trimright();
-		d.trimleft();
-	}
-	while (y-- > 0)
-	{
-		c.trimtop();
-		d.trimbottom();
-	}
-	while (y++ < 0)
-	{
-		c.trimbottom();
-		d.trimtop();
-	}
+	prepImages(c, d, i, j);
 	pgmImage e = c - d;
+#ifdef UNDEFINED
+	std::cout << i << "," << j << std::endl << "left:" << std::endl;
+	c.print();
+	std::cout << "right:" << std::endl;
+	d.print();
+	std::cout << "diff:" << std::endl;
+	e.print();
+#endif
 	return e.error();
 }
 
@@ -295,31 +340,38 @@ float measureDiff(pgmImage &a, pgmImage &b, int x, int y)
 	this is the meat and potatoes. take two images and brute for a range
 	of x,y offsets to find the offset with the least error over area.
 */
-int findOffset(pgmImage &a, pgmImage &b, int x, int y)
+int findOffset(pgmImage &a, pgmImage &b, const int xRange, const int yRange, int &rx, int &ry)
 {
 	std::vector<std::vector<float>> err;
-	err.resize((x*2)+1, std::vector<float>((y*2)+1, 0.0));
+	err.resize((xRange*2)+1, std::vector<float>((yRange*2)+1, 0.0));
 
-	int rx, ry;
 	float re = FLT_MAX;
-	for (int i = -x; i <= x; i++)
+	for (int relX = -xRange; relX <= xRange; relX++)
 	{
-		for (int j = -y; j <= y; j++)
+		for (int relY = -yRange; relY <= yRange; relY++)
 		{
-			int k = i + x;
-			int l = j + y;
-			err[k][l] = measureDiff(a, b, i, j);
-			if (fabs(err[k][l]) < re)
+			int absX = relX + xRange;
+			int absY = relY + yRange;
+			err[absX][absY] = measureDiff(a, b, relX, relY);
+			if (fabs(err[absX][absY]) < re)
 			{
-				re = fabs(err[k][l]);
-				rx = i;
-				ry = j;
+				re = fabs(err[absX][absY]);
+				rx = relX;
+				ry = relY;
 			}
-			//std::cout << i << "," << j << " = " << err[k][l] << std::endl;
+			//std::cout << relX << "," << relY << " = " << err[absX][absY] << std::endl << std::endl;
 		}
 	}
-	std::cout << rx << " " << ry << " " << err[rx + x][ry + y] << std::endl;
 	return EXIT_SUCCESS;
+}
+
+void usage(char* progname)
+{
+	std::cout << std::endl;
+	std::cout << progname << " usage:" << std::endl;
+	std::cout << std::endl;
+	std::cout << "     " << progname << " LeftInputFrame.pgm RightInputFrame.pgm maxX maxY LeftOutputFrame.pgm RightOutputFrame.pgm" << std::endl;
+	exit(EXIT_FAILURE);
 }
 
 /*
@@ -329,7 +381,7 @@ int main(int argc, char* argv[])
 {
 	int xRange, yRange, rv = EXIT_FAILURE;
 
-	if (argc !=5) {
+	if (argc !=7) {
 		usage(argv[0]);
 	}
 	
@@ -348,10 +400,16 @@ int main(int argc, char* argv[])
 	}
 	try
 	{
+		int xOff, yOff;
 		A = new pgmImage(argv[1]);
 		B = new pgmImage(argv[2]);
 
-		rv = findOffset(*A, *B, xRange, yRange);
+		rv = findOffset(*A, *B, xRange, yRange, xOff, yOff);
+		std::cout << xOff << " " << yOff << std::endl;
+
+		prepImages(*A, *B, xOff, yOff);
+		A->printImage(argv[5]);
+		B->printImage(argv[6]);
 	}
 	catch (char *e)
 	{
@@ -370,37 +428,3 @@ int main(int argc, char* argv[])
 	}
 	exit(rv);
 }
-
-#ifdef UNDEFINED
-D = new pgmImage(*B);
-C = *A;
-std::cout << "A" << std::endl;
-A->print();
-std::cout << "B" << std::endl;
-B->print();
-std::cout << std::endl;
-
-std::cout << "B - A" << std::endl;
-C = *B - *A;
-C.print();
-std::cout << std::endl << "error of B-A" << std::endl;
-std::cout << C.error() << std::endl;
-
-A->imgData.resize(2, std::vector<int>(2, 0));
-std::cout << "resized A" << std::endl;
-A->print();
-std::cout << "C" << std::endl;
-C.print();
-B->imgData.resize(2, std::vector<int>(2, 0));
-std::cout << "resized B" << std::endl;
-B->print();
-std::cout << "D" << std::endl;
-D->print();
-std::cout << "A - B" << std::endl;
-C = *A - *B;
-C.print();
-std::cout << "A" << std::endl;
-A->print();
-std::cout << "B" << std::endl;
-B->print();
-#endif
